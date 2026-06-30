@@ -3,16 +3,8 @@ sudo apt update
 # 2. Устанавливаем Python 3 и базовые утилиты, если их нет 
 sudo apt install -y python3 python3-pip python3-venv
 
-cd /home/user
-# 1. Распаковываем архив
-tar -xf ffmpeg-release-amd64-static.tar.xz
-# 2. Заходим в распакованную папку (имя может немного отличаться версией, нажмите Tab для автозаполнения)
-cd ffmpeg-*-amd64-static/
-# 3. Копируем готовые исполняемые файлы в системную папку, чтобы они были доступны везде
-sudo cp ffmpeg ffprobe /usr/local/bin/
-# 4. Проверяем работу
-ffmpeg -version
-
+# Установка FFmpeg
+sudo apt install ffmpeg
 
 # Создаем файл конфигурации службы:
 sudo nano /etc/systemd/system/tvserver.service
