@@ -63,7 +63,6 @@ def prepare_monolith():
     filter_complex = ""
     for i, v in enumerate(videos):
         inputs.extend(['-i', os.path.abspath(os.path.join(VIDEO_DIR, v))])
-        # Приводим каждый кусок к единой сетке фильтрами, чтобы убрать ошибки NAL, разрешения и кодеков
         filter_complex += f"[{i}:v]scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,setsar=1[v{i}];"
 
     # Склеиваем подготовленные дорожки в один ряд
@@ -76,14 +75,13 @@ def prepare_monolith():
                  ] + inputs + [
                      '-filter_complex', filter_complex,
                      '-map', '[v_out]', '-map', '[a_out]',
-                     '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '28',  # Быстрый рендер для сборки
+                     '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '28',
                      '-r', '25', '-pix_fmt', 'yuv420p',
                      '-c:a', 'aac', '-b:a', '128k', '-ar', '44100', '-ac', '2',
                      MONOLITH_FILE
                  ]
 
     start_time = time.time()
-    # Запускаем сборку. Она займет время, но сделает монолит, идеальный для HLS
     process = subprocess.Popen(render_cmd, stdout=subprocess.DEVNULL, stderr=sys.stderr)
     process.wait()
 
@@ -105,7 +103,7 @@ def start_ffmpeg_stream():
         '-re',
         '-stream_loop', '-1',
         '-i', MONOLITH_FILE,
-        '-c', 'copy',  # ПРОСТО КОПИРУЕМ ПОТОК без нагрузки на сервер!
+        '-c', 'copy',
         '-f', 'hls',
         '-hls_time', '4',
         '-hls_list_size', '5',
@@ -147,10 +145,8 @@ class LiveTVHandler(SimpleHTTPRequestHandler):
 if __name__ == '__main__':
     ffmpeg_process = None
     try:
-        # 1. Сначала готовим неубиваемый монолит из всех видео
         prepare_monolith()
 
-        # 2. Только потом запускаем легкий стриминг
         ffmpeg_process = start_ffmpeg_stream()
 
         server_address = ('', PORT)
