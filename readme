@@ -1,0 +1,57 @@
+# 1. Обновляем списки пакетов системы 
+sudo apt update 
+# 2. Устанавливаем Python 3 и базовые утилиты, если их нет 
+sudo apt install -y python3 python3-pip python3-venv
+
+cd /home/user
+# 1. Распаковываем архив
+tar -xf ffmpeg-release-amd64-static.tar.xz
+# 2. Заходим в распакованную папку (имя может немного отличаться версией, нажмите Tab для автозаполнения)
+cd ffmpeg-*-amd64-static/
+# 3. Копируем готовые исполняемые файлы в системную папку, чтобы они были доступны везде
+sudo cp ffmpeg ffprobe /usr/local/bin/
+# 4. Проверяем работу
+ffmpeg -version
+
+
+# Создаем файл конфигурации службы:
+sudo nano /etc/systemd/system/tvserver.service
+
+# Вставляем туда следующий текст
+[Unit]
+Description=Loop TV Video Server
+After=network.target
+
+[Service]
+Type=simple
+User=user # Заменить на своег опользователя
+WorkingDirectory=/opt/tvServer
+ExecStart=/usr/bin/python3 /opt/tvServer/main.py # папка где лежит скрипт
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+
+# Активируем службу, чтобы она запускалась автоматически при включении ПК
+sudo systemctl daemon-reload
+sudo systemctl enable tvserver
+sudo systemctl start tvserver
+
+# Как обновить видео (Добавить / Удалить ролик)
+# 1. Удаляем старый объединенный файл (чтобы скрипт понял, что нужно собрать новый)
+sudo rm /opt/tvServer/full_tv_loop.mp4
+# 2. Перезапускаем службу сервера
+sudo systemctl restart tvserver
+
+# Полезные команды для контроля
+# Проверить статус службы (работает или упала):
+sudo systemctl status tvserver
+# Смотреть (логи):
+sudo journalctl -u tvserver -f
+# Посмотреть, создается ли файл монолита и какого он размера:
+ls -lh /opt/tvServer/
+
+# Как смотреть
+#Откройте встроенный браузер на вашем ТВ и введите адрес: http://АДРЕС_ВАШЕГО_СЕРВЕРА:8888
+
